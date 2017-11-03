@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# 哈哈 
-
 . /etc/init.d/functions
 
 MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.37.tar.gz" 
