@@ -1,4 +1,11 @@
 #!/bin/bash
+# Program:
+#	auto install lamp env.
+# Author: 
+#	chtao < ladylinux@163.com >
+# Date:	
+#	2017/10/7
+# 
 
 . /etc/init.d/functions
 
