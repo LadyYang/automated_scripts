@@ -5,18 +5,25 @@
 #	chtao < ladylinux@163.com >
 # Date:	
 #	2017/10/7
+#	2017/11/4 optimized code
 # 
 
 . /etc/init.d/functions
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.37.tar.gz" 
 MYSQL_FILE="mysql-5.6.37.tar.gz"
 MYSQL_DIR="mysql-5.6.37"
 
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# Install the apache dependency library 
+
+OPENSSL_FILE="openssl-1.0.2m.tar.gz"
+OPENSSL_DIR="openssl-1.0.2m"
+
 APACHE_URL="http://mirrors.tuna.tsinghua.edu.cn/apache//httpd/httpd-2.4.27.tar.gz"
 APACHE_FILE="httpd-2.4.27.tar.gz"
 APACHE_DIR="httpd-2.4.27"
-
 
 APR_URL="http://mirrors.hust.edu.cn/apache//apr/apr-1.6.2.tar.gz"
 APR_FILE="apr-1.6.2.tar.gz"
@@ -172,12 +179,11 @@ function install_apache(){
 	# RewriteCond %{SERVER_PORT} !^443$
 	# RewriteRule ^/?(.*)$ https://%{SERVER_NAME}/$1 [L,R]
 	
-	yum -y install gcc wget pcre pcre-devel apr apr-devel apr-util apr-util-devel openssl openssl-devel 
+	yum -y install gcc wget pcre pcre-devel apr apr-devel apr-util apr-util-devel
     	rm -fr /usr/local/src/apache*
 	echo "${APACHE_DIR} will be installed,please be patient..."
 	sleep 3
-    	cd /usr/local/src
- 
+
     # 安装 apr 库的支持
     # wget $APR_URL
     # tar zxf $APR_FILE
@@ -209,8 +215,24 @@ function install_apache(){
    # make && make install
     
     if [ ! -d /usr/local/apache2 ];then
-        cd /usr/local/src
-		
+
+        if [ ! -d /usr/local/ssl ];then
+	    rm -fr /usr/local/ssl
+	fi
+
+	tar xzf ./$OPENSSL_FILE
+
+	cd ./$OPENSSL_DIR
+	./config --prefix=/usr/local/openssl --shared
+	check
+	make && make install
+	check
+	echo /usr/local/ssl/lib >> /etc/ld.so.conf
+	/usr/sbin/ldconfig
+	check
+	
+	# 安装 Apache
+        cd /usr/local/src		
 	if [ ! -f $APACHE_FILE ];then
             wget -c $APACHE_URL
         fi
@@ -225,7 +247,7 @@ function install_apache(){
 
         cd $APACHE_DIR
         # ./configure --prefix=/usr/local/apache2 --with-apr=/usr/local/apr --with-apr-util=/usr/local/apr-util/ --with-pcre --enable-mods-shared=most --enable-so --with-included-apri --enable-rewrite 
-	./configure --prefix=/usr/local/apache2 --enable-rewrite --enable-so --enable-ssl  #--enable-session
+	./configure --prefix=/usr/local/apache2 --enable-rewrite --enable-so --enable-ssl --with-ssl=/usr/local/ssl --with-mpm=prefork
 	check
         make && make install
         check
